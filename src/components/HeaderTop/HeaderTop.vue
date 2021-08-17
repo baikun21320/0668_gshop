@@ -2,7 +2,7 @@
   <header class="header">
     <slot name="left"></slot>
     <span class="header_title">
-      <span class="header_title_text ellipsis">{{title}}</span>
+      <span class="header_title_text ellipsis">{{this.$store.state.address.address}}</span>
     </span>
     <slot name="right"></slot>
   </header>
@@ -10,9 +10,7 @@
 
 <script>
 export default {
-  props: {
-    title: String
-  }
+
 }
 </script>
 

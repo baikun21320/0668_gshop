@@ -2,17 +2,17 @@
   <section class="profile">
     <HeaderTop title="我的"></HeaderTop>
     <section class="profile-number">
-      <router-link to="./login" class="profile-link">
+      <router-link :to="userInfo._id?'./userinfo':'./login'" class="profile-link">
         <div class="profile_image">
           <i class="iconfont icon-icon-test"></i>
         </div>
         <div class="user-info">
-          <p class="user-info-top">登录/注册</p>
+          <p class="user-info-top" v-if="!userInfo.phone">{{userInfo.name||'登录/注册'}}</p>
           <p>
             <span class="user-icon">
               <i class="iconfont icon-shouji2 icon-mobile"></i>
             </span>
-            <span class="icon-mobile-number">暂无绑定手机号</span>
+            <span class="icon-mobile-number">{{userInfo.phone||'暂无绑定手机号'}}</span>
           </p>
         </div>
         <span class="arrow">
@@ -88,14 +88,30 @@
         </div>
       </a>
     </section>
+    <section class="profile_my_order border-1px">
+      <mt-button type="danger" v-show="userInfo._id" style="width: 100%" @click="logout">退出登录</mt-button>
+    </section>
   </section>
 </template>
 
 <script>
+import {mapState,mapActions} from 'vuex'
+import { MessageBox } from 'mint-ui';
 import HeaderTop from '../../components/HeaderTop/HeaderTop'
 export default {
   components: {
     HeaderTop
+  },
+  computed: {
+    ...mapState(['userInfo'])
+  },
+  methods: {
+    ...mapActions(['LogOut']),
+    logout() {
+      MessageBox.confirm('确定执行此操作?').then(action => {
+        this.LogOut()
+      });
+    }
   }
 }
 </script>
@@ -140,7 +156,7 @@ export default {
             width 20px
             height 20px
             .icon-mobile
-              font-size 30px
+              font-size 25px
               vertical-align text-top
           .icon-mobile-number
             font-size 14px
