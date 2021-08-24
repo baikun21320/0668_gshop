@@ -10,7 +10,7 @@
           <p class="user-info-top" v-if="!userInfo.phone">{{userInfo.name||'登录/注册'}}</p>
           <p>
             <span class="user-icon">
-              <i class="iconfont icon-shouji2 icon-mobile"></i>
+              <i class="iconfont icon-shouji1 icon-mobile"></i>
             </span>
             <span class="icon-mobile-number">{{userInfo.phone||'暂无绑定手机号'}}</span>
           </p>
@@ -143,6 +143,8 @@ export default {
         float left
         margin-top 8px
         margin-left 15px
+        padding-left: 5px
+        width 65%
         p
           font-weight: 700
           font-size 18px
@@ -156,8 +158,9 @@ export default {
             width 20px
             height 20px
             .icon-mobile
-              font-size 25px
-              vertical-align text-top
+              font-size 20px
+              vertical-align text-bottom
+              margin-left 10px
           .icon-mobile-number
             font-size 14px
             color #fff

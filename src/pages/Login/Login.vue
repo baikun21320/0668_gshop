@@ -42,7 +42,7 @@
               </section>
               <section class="login_message">
                 <input type="text" maxlength="11" placeholder="验证码" v-model="captcha">
-                <img class="get_verification" src="http://localhost:4000/captcha" alt="captcha"  @click="getCaptcha" ref="captcha">
+                <img class="get_verification" src="/api/captcha" alt="captcha"  @click="getCaptcha" ref="captcha">
               </section>
             </section>
           </div>
@@ -61,7 +61,7 @@
 
 <script>
 import AlertTip from '../../components/AlertTip/AlertTip'
-import {reqSmsLogin,reqSendCode,reqPwdLogin} from '../../../../gshop-client_final/src/api'
+import {reqSmsLogin,reqSendCode,reqPwdLogin} from '../../api'
 export default {
   data() {
     return {
@@ -118,7 +118,7 @@ export default {
       let result
       if (this.loginWay) {  // 短信登陆
         const {rightPhone, phone, code} = this
-        if (!this.rightPhone) {
+        if (!rightPhone) {
           // 手机号不正确
           this.showAlert('手机号不正确')
           return
@@ -127,18 +127,18 @@ export default {
           this.showAlert('验证必须是6位数字')
           return
         }
-        result = await reqSmsLogin(this.phone,code)
+        result = await reqSmsLogin(phone,code)
       } else {// 密码登陆
         const {name, pwd, captcha} = this
-        if (!this.name) {
+        if (!name) {
           // 用户名必须指定
           this.showAlert('用户名必须指定')
           return
-        } else if (!this.pwd) {
+        } else if (!pwd) {
           // 密码必须指定
           this.showAlert('密码必须指定')
           return
-        } else if (!this.captcha) {
+        } else if (!captcha) {
           // 验证码必须指定
           this.showAlert('验证码必须指定')
           return
@@ -165,7 +165,7 @@ export default {
       }
     },
     getCaptcha() {
-      this.$refs.captcha.src = 'http://localhost:4000/captcha?time=' + Date.now()
+      this.$refs.captcha.src = '/api/captcha?time=' + Date.now()
     }
   },
   components: {

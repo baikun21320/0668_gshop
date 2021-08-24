@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import {
   RECEIVE_ADDRESS,
+  // RECEIVE_MYADDRESS,
   RECEIVE_CATEGORYS,
   RECEIVE_SHOPS,
   RECEIVE_USER_INFO,
@@ -10,9 +11,14 @@ import {
   RECEIVE_RATINGS,
   INCREMENT_FOOD_COUNT,
   DECREMENT_FOOD_COUNT,
-  CLEAR_CART
+  CLEAR_CART,
+  RECEIVE_SEARCH_SHOPS
 } from './mutation-types'
 export default {
+  // [RECEIVE_MYADDRESS] (state, {latitude,longitude}) {
+  //   state.mylatitude = latitude
+  //   state.mylongitude = longitude
+  // },
   [RECEIVE_ADDRESS] (state, {address}) {
     state.address = address
   },
@@ -81,8 +87,8 @@ export default {
     // 移除购物车中所有购物项
     state.cartFoods = []
   },
-  //
-  // [RECEIVE_SEARCH_SHOPS](state, {searchShops}) {
-  //   state.searchShops = searchShops
-  // },
+
+  [RECEIVE_SEARCH_SHOPS](state, {searchShops}) {
+    state.searchShops = searchShops
+  },
 }

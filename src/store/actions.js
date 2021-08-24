@@ -1,5 +1,6 @@
 import {
   RECEIVE_ADDRESS,
+  // RECEIVE_MYADDRESS,
   RECEIVE_CATEGORYS,
   RECEIVE_SHOPS,
   RECEIVE_USER_INFO,
@@ -8,7 +9,9 @@ import {
   RECEIVE_INFO,
   RECEIVE_RATINGS,
   INCREMENT_FOOD_COUNT,
-  DECREMENT_FOOD_COUNT
+  DECREMENT_FOOD_COUNT,
+  RECEIVE_SEARCH_SHOPS,
+  CLEAR_CART
 } from './mutation-types'
 
 import {
@@ -20,12 +23,14 @@ import {
   reqShopGoods,
   reqShopInfo,
   reqShopRatings,
+  reqSearchShop
 } from  '../api'
-import {CLEAR_CART} from "../../../gshop-client_final/src/store/mutation-types";
 export default {
-  async getAddress({commit, state}) {
+  // 异步获取地址
+  async getAddress({commit}, Location) {
     // 发送异步ajax请求
-    const geohash = state.latitude + ',' + state.longitude
+    const geohash = Location.latitude + ',' + Location.longitude
+    console.log(geohash)
     const result = await reqAddress(geohash)
     // 提交一个mutation
     if (result.code === 0) {
@@ -33,10 +38,16 @@ export default {
       commit(RECEIVE_ADDRESS, {address})
     }
   },
-  // 异步获取分类列表
+
+  // 异步获取食品分类列表
   async getCategorys({commit}) {
+    // 发送异步ajax请求
     const result = await reqCategorys()
-    commit(RECEIVE_CATEGORYS, {categorys: result.data})
+    // 提交一个mutation
+    if (result.code === 0) {
+      const categorys = result.data
+      commit(RECEIVE_CATEGORYS, {categorys})
+    }
   },
   // 异步获取商家列表
   async getShops({commit, state}) {
@@ -101,6 +112,14 @@ export default {
   // 同步清空购物车
   clearCart({commit}) {
     commit(CLEAR_CART)
+  },
+  async searchShops({commit,state},keyword) {
+    const geohash = state.latitude + ',' + state.longitude
+    const result = await reqSearchShop(geohash, keyword)
+    if (result.code === 0) {
+      const searchShops = result.data
+      commit(RECEIVE_SEARCH_SHOPS,{searchShops})
+    }
   },
 
 }

@@ -55,7 +55,7 @@ import Star from '../Star/Star'
   export default {
     data () {
       return {
-        baseImgUrl: 'http://47.97.208.94:8081/snake/images/'
+        baseImgUrl: 'http://47.97.208.94:8081/images/'
       }
     },
     components: {

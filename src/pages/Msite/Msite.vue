@@ -1,7 +1,7 @@
 <template>
   <section class="msite">
     <!--首页头部-->
-    <HeaderTop>
+    <HeaderTop class="headerTop" :title="address.name || '定位失败'">
       <router-link class="header_search" slot="left" to="./search">
         <i class="iconfont icon-soushuo-copy-copy" style="color: white"></i>
       </router-link>
@@ -12,63 +12,158 @@
         </span>
       </router-link>
     </HeaderTop>
-    <!--首页导航-->
-    <nav class="msite_nav">
-      <div class="swiper-container" v-if="categorys.length">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide" v-for="(categorys, index) in categorysArr" :key="index">
-            <a href="javascript:" class="link_to_food" v-for="(category, index) in categorys" :key="index">
-              <div class="food_container">
-                <img :src="baseImageUrl+category.image_url">
-              </div>
-              <span>{{category.title}}</span>
-            </a>
-          </div>
+    <scroll class="content"
+            :probe-type="3"
+            ref="scroll"
+            @scroll="contentScroll"
+            :pull-up-load="true"
+            @pullingUp="loadmore"
+            :pull-down-refresh="true"
+            @pullingDown="refresh">
 
+      <!--首页导航-->
+      <nav class="msite_nav">
+        <div class="swiper-container" v-if="categorys.length">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide" v-for="(categorys, index) in categorysArr" :key="index">
+              <a href="javascript:" class="link_to_food" v-for="(category, index) in categorys" :key="index">
+                <div class="food_container">
+                  <img :src="baseImageUrl+category.image_url">
+                </div>
+                <span>{{category.title}}</span>
+              </a>
+            </div>
+
+          </div>
+          <!-- Add Pagination -->
+          <div class="swiper-pagination"></div>
         </div>
-        <!-- Add Pagination -->
-        <div class="swiper-pagination"></div>
+        <img src="./images/msite_back.svg" alt="back" v-else>
+      </nav>
+      <!--首页附近商家-->
+      <div class="msite_shop_list">
+        <div class="shop_header">
+          <i class="iconfont icon-xuanxiang"></i>
+          <span class="shop_header_title">附近商家</span>
+        </div>
+          <shop-list/>
       </div>
-      <img src="./images/msite_back.svg" alt="back" v-else>
-    </nav>
-    <!--首页附近商家-->
-    <div class="msite_shop_list">
-      <div class="shop_header">
-        <i class="iconfont icon-xuanxiang"></i>
-        <span class="shop_header_title">附近商家</span>
-      </div>
-        <shop-list/>
-    </div>
+    </scroll>
+    <back-top @click.native="backClick" v-show="isShowTop" ref="backtop"/>
   </section>
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState,mapActions} from 'vuex'
 import Swiper from "swiper";
 import 'swiper/dist/css/swiper.min.css'
 
 import HeaderTop from '../../components/HeaderTop/HeaderTop'
 import ShopList from "../../components/ShopList/ShopList";
+import Scroll from "../../components/scroll/Scroll";
+import BackTop from "../../components/backTop/BackTop";
 
 export default {
   data() {
     return {
-      baseImageUrl: 'https://fuss10.elemecdn.com'
+      baseImageUrl: 'https://fuss10.elemecdn.com',
+      isShowTop: false,
+      isTabFixed: false,
+      saveY: 0
     }
   },
   mounted () {
-    var mySwiper = new Swiper ('.swiper-container', {
+    // const refresh = debounce(this.$refs.scroll.refresh, 50)
+    new Swiper ('.swiper-container', {
       loop: true, // 循环模式选项
       // 如果需要分页器
       pagination: {
         el: '.swiper-pagination',
       }
     })
+    // this.getLocation()
     this.$store.dispatch('getCategorys')
     this.$store.dispatch('getShops')
+
   },
+  methods: {
+    //获取当前位置
+    async getLocation() {
+      if (navigator.geolocation) {
+          await navigator.geolocation.getCurrentPosition((position)=>{
+          let longitude =position.coords.longitude
+          let latitude = position.coords.latitude
+          let Location={longitude,latitude}
+          this.$store.dispatch('getAddress',Location)
+        }, (error)=>{
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              console.log("定位失败,用户拒绝请求地理定位");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.log("定位失败,位置信息是不可用");
+              break;
+            case error.TIMEOUT:
+              console.log("定位失败,请求获取用户位置超时");
+              break;
+            case error.UNKNOWN_ERROR:
+              console.log("定位失败,定位系统失效");
+              break;
+          }
+        });
+      } else {
+        console.log("浏览器不支持地理定位。");
+      }
+    },
+    //回到顶部
+    backClick() {
+      this.$refs.scroll.scrollTo(0,0,500)
+    },
+    contentScroll(position) {
+      //判断Backtop是否显示
+      this.isShowTop = (-position.y) > 1000
+      if(position.y>10){
+        // this.$refs.scroll.$emit('infinitescroll.downloading');
+        this.$refs.scroll.showLoding = true
+      }else {
+        this.$refs.scroll.showLoding = false
+      }
+    },
+    //上拉加载
+    loadmore(){
+      this.$refs.scroll.$emit('infinitescroll.reInit');
+      // this.$refs.scroll.$emit('infinitescroll.loading');
+     setTimeout(()=>{
+       this.finishPullUp()
+     },1000)
+    },
+    //完成上拉加载
+    finishPullUp() {
+      this.$refs.scroll.$emit('infinitescroll.loadedDone');
+      this.$refs.scroll.finishPullUp()
+    },
+    //下拉刷新
+    refresh(){
+      this.$refs.scroll.$emit('infinitescroll.downloading');
+      this.getLocation()
+      this.$store.dispatch('getShops')
+      this.$store.dispatch('getAddress')
+    },
+    finishPullDown() {
+      this.$refs.scroll.$emit('infinitescroll.downover');
+      this.$refs.scroll.finishPullDown()
+    }
+  },
+  activated() {  //进入页面
+    this.$refs.scroll.scrollTo(0,this.saveY,0)
+    this.$refs.scroll.refresh()
+  },
+  deactivated() {   //离开页面
+    this.saveY = this.$refs.scroll.getScrollY()
+  },
+
   computed: {
-    ...mapState(['categorys','userInfo']),
+    ...mapState(['categorys','userInfo','shops','address']),
     categorysArr () {
       const {categorys} = this
       // 准备空的2维数组
@@ -117,12 +212,19 @@ export default {
           },
         })
       })
-
+    },
+    shops() {
+      this.$nextTick(() => {// 一旦完成界面更新, 立即调用(此条语句要写在数据更新之后)
+        this.$refs.scroll.refresh()
+        this.finishPullDown()
+      })
     }
   },
   components: {
     HeaderTop,
-    ShopList
+    ShopList,
+    Scroll,
+    BackTop
   }
 }
 </script>
@@ -131,54 +233,60 @@ export default {
 @import "../../common/stylus/mixins.styl"
 .msite  //首页
   width 100%
-  .msite_nav
-    bottom-border-1px(#e4e4e4)
-    margin-top 45px
-    height 200px
-    background #fff
-    .swiper-container
-      width 100%
-      height 100%
-      .swiper-wrapper
+  .content
+    overflow: hidden
+    position: absolute
+    top: 45px
+    bottom: 50px
+    left: 0
+    right: 0
+    .msite_nav
+      bottom-border-1px(#e4e4e4)
+      height 200px
+      background #fff
+      .swiper-container
         width 100%
         height 100%
-        .swiper-slide
-          display flex
-          justify-content center
-          align-items flex-start
-          flex-wrap wrap
-          .link_to_food
-            width 25%
-            .food_container
-              display block
-              width 100%
-              text-align center
-              padding-bottom 10px
-              font-size 0
-              img
-                display inline-block
-                width 50px
-                height 50px
-            span
-              display block
-              width 100%
-              text-align center
-              font-size 13px
-              color #666
-      .swiper-pagination
-        >span.swiper-pagination-bullet-active
-          background #02a774
-  .msite_shop_list
-    top-border-1px(#e4e4e4)
-    margin-top 10px
-    background #fff
-    .shop_header
-      padding 10px 10px 0
-      .shop_icon
-        margin-left 5px
-        color #999
-      .shop_header_title
-        color #999
-        font-size 14px
-        line-height 20px
+        .swiper-wrapper
+          width 100%
+          height 100%
+          .swiper-slide
+            display flex
+            justify-content center
+            align-items flex-start
+            flex-wrap wrap
+            .link_to_food
+              width 25%
+              .food_container
+                display block
+                width 100%
+                text-align center
+                padding-bottom 10px
+                font-size 0
+                img
+                  display inline-block
+                  width 50px
+                  height 50px
+              span
+                display block
+                width 100%
+                text-align center
+                font-size 13px
+                color #666
+        .swiper-pagination
+          >span.swiper-pagination-bullet-active
+            background #02a774
+    .msite_shop_list
+      top-border-1px(#e4e4e4)
+      margin-top 10px
+      background #fff
+      .shop_header
+        padding 10px 10px 0
+        .shop_icon
+          margin-left 5px
+          color #999
+        .shop_header_title
+          color #999
+          font-size 14px
+          line-height 20px
 </style>

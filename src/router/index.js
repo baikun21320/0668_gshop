@@ -13,6 +13,7 @@ import Shop from "../pages/Shop/Shop";
 import ShopGoods from "../pages/Shop/ShopGoods/ShopGoods";
 import ShopRatings from "../pages/Shop/ShopRatings/ShopRatings";
 import ShopInfo from "../pages/Shop/ShopInfo/ShopInfo";
+import Userinfo from "../pages/Userinfo/Userinfo";
 Vue.use(VueRouter)
 
 export default new VueRouter({
@@ -52,6 +53,10 @@ export default new VueRouter({
     {
       path: '/login',
       component: Login
+    },
+    {
+      path: '/userinfo',
+      component: Userinfo
     },
     {
       path: '/shop',
